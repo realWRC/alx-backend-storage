@@ -1,6 +1,5 @@
 -- Write a SQL script that creates a trigger that decreases
 -- the quantity of an item after adding a new order.
-DROP TRIGGER IF EXISTS decrease_quantity_after_order
 DELIMITER $$
 CREATE TRIGGER decrease_quantity_after_order
 AFTER INSERT ON orders
