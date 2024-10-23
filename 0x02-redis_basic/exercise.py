@@ -14,7 +14,7 @@ T = TypeVar('T')
 
 def count_calls(method: Callable) -> Callable:
     """
-    Tracks number of calls made to method
+    Decorator that tracks number of times a method is called
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
@@ -25,6 +25,24 @@ def count_calls(method: Callable) -> Callable:
         if isinstance(self._redis, redis.Redis):
             self._redis.incr(method.__qualname__)
         return method(self, *args, **kwargs)
+    return wrapper
+
+
+def call_history(method: Callable) -> Callable:
+    """
+    Decorator to store the history of inputs and outputs for a function
+    """
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        """Wraper function"""
+        input_key = method.__qualname__ + ":inputs"
+        output_key = method.__qualname__ + ":outputs"
+
+        self._redis.rpush(input_key, str(args))
+        result = method(self, *args, **kwargs)
+
+        self._redis.rpush(output_key, str(result))
+        return result
     return wrapper
 
 
@@ -40,6 +58,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @call_history
     @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
