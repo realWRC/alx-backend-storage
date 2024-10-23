@@ -8,7 +8,7 @@ def update_topics(mongo_collection, name, topics):
     """
     Update all topics of a school document based on the name.
     """
-    mongo_collection.update_one(
+    return mongo_collection.update_many(
         {"name": name},
         {"$set": {"topics": topics}}
     )
