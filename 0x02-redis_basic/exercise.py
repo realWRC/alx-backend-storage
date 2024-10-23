@@ -6,8 +6,9 @@ some functions.
 
 import redis
 import uuid
-from typing import Union, Callable, Optional
+from typing import Union, Callable, TypeVar, Optional, overload
 
+T = TypeVar('T')
 
 class Cache:
     """
@@ -29,10 +30,15 @@ class Cache:
         self._redis.set(key, data)
         return key
 
-    def get(self,
-            key: str,
-            fn: Optional[Callable[[bytes], Union[str, int, bytes]]] = None)\
-            -> Optional[Union[str, int, bytes]]:
+    @overload
+    def get(self, key: str) -> Optional[bytes]:
+        ...
+
+    @overload
+    def get(self, key: str, fn: Callable[[bytes], T]) -> Optional[T]:
+        ...
+
+    def get(self, key: str, fn: Optional[Callable[[bytes], T]] = None) -> Optional[Union[bytes, T]]:
         """
         Retrieve data from Redis
         """
