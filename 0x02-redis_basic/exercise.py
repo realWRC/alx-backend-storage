@@ -6,9 +6,27 @@ some functions.
 
 import redis
 import uuid
+from functools import wraps
 from typing import Union, Callable, TypeVar, Optional, overload
 
 T = TypeVar('T')
+
+
+def count_calls(method: Callable) -> Callable:
+    """
+    Tracks number of calls made to method
+    """
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        """
+        Returns a method after incrementation of its call
+        counter
+        """
+        if isinstance(self._redis, redis.Redis):
+            self._redis.incr(method.__qualname__)
+        return method(self, *args, **kwargs)
+    return wrapper
+
 
 class Cache:
     """
@@ -22,6 +40,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
         Stores the input data in Redis.
@@ -38,7 +57,8 @@ class Cache:
     def get(self, key: str, fn: Callable[[bytes], T]) -> Optional[T]:
         ...
 
-    def get(self, key: str, fn: Optional[Callable[[bytes], T]] = None) -> Optional[Union[bytes, T]]:
+    def get(self, key: str, fn: Optional[Callable[[bytes], T]] = None)\
+            -> Optional[Union[bytes, T]]:
         """
         Retrieve data from Redis
         """
