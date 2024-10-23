@@ -42,3 +42,15 @@ class Cache:
         if fn:
             return fn(data)
         return data
+
+    def get_str(self, key: str) -> Optional[str]:
+        """
+        Retrieves a string from Redis using a key.
+        """
+        return self.get(key, fn=lambda s: s.decode('utf-8'))
+
+    def get_int(self, key: str) -> Optional[int]:
+        """
+        Retrieves an integer from Redis using a key.
+        """
+        return self.get(key, fn=int)
